@@ -1,0 +1,23 @@
+{
+  "entries": [
+    {
+      "date": "2025-08-05",
+      "cycleLen": 28,
+      "periodLen": 5,
+      "notes": "baseline"
+    },
+    {
+      "date": "2025-09-02",
+      "cycleLen": 28,
+      "periodLen": 5,
+      "notes": "mild cramps"
+    }
+  ],
+  "symptoms": [
+    {
+      "id": "sample-1",
+      "date": "2025-09-03",
+      "tag": "Cramps"
+    }
+  ]
+}
