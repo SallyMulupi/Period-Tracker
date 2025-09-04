@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FlowCast — Simple Period Tracker</title>
+    <meta name="description" content="A lightweight, private-by-default period tracker built with JavaScript and Tailwind CSS." />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <!-- Tailwind Play CDN (quick setup for the capstone). See TOOLKIT.md for a production build. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      // Tailwind config: extend a little for brand
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                50:'#fff1f2',100:'#ffe4e6',200:'#fecdd3',300:'#fda4af',400:'#fb7185',
+                500:'#f43f5e',600:'#e11d48',700:'#be123c',800:'#9f1239',900:'#881337'
+              }
+            },
+            boxShadow: {
+              soft: '0 10px 25px -5px rgba(0,0,0,0.05), 0 10px 10px -5px rgba(0,0,0,0.04)'
+            }
+          }
+        }
+      }
+    </script>
+  </head>
+  <body class="min-h-screen bg-gradient-to-b from-rose-50 to-white text-slate-800">
+    <header class="sticky top-0 z-10 backdrop-blur bg-white/70 border-b">
+      <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <img src="assets/favicon.svg" alt="" class="w-8 h-8" />
+          <h1 class="text-xl sm:text-2xl font-semibold tracking-tight">
+            FlowCast <span class="text-brand-600">Period Tracker</span>
+          </h1>
+        </div>
+        <nav class="hidden sm:flex gap-2">
+          <button id="exportBtn" class="px-3 py-2 rounded-2xl shadow-soft border hover:bg-slate-50">
+            Export Data
+          </button>
+          <label class="px-3 py-2 rounded-2xl shadow-soft border hover:bg-slate-50 cursor-pointer">
+            <input id="importInput" type="file" accept="application/json" class="hidden" />
+            Import
+          </label>
+          <button id="resetBtn" class="px-3 py-2 rounded-2xl shadow-soft border hover:bg-rose-50 text-brand-700">
+            Reset
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
+      <!-- Intro/Alert -->
+      <div class="rounded-2xl border p-4 sm:p-6 bg-white shadow-soft">
+        <p class="text-sm text-slate-600">
+          Your data is stored <strong>locally in this browser</strong> (no servers). You can export/import JSON anytime.
+        </p>
+      </div>
+
+      <!-- Input + Stats -->
+      <section class="grid md:grid-cols-2 gap-6">
+        <!-- Input Card -->
+        <div class="rounded-2xl border p-5 bg-white shadow-soft">
+          <h2 class="text-lg font-semibold mb-4">Log Period</h2>
+          <form id="logForm" class="space-y-4" aria-describedby="predictions">
+            <div>
+              <label for="startDate" class="block text-sm font-medium">Start date</label>
+              <input id="startDate" type="date" required class="mt-1 w-full rounded-xl border p-2" />
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label for="cycleLen" class="block text-sm font-medium">Avg cycle length</label>
+                <input id="cycleLen" type="number" min="20" max="60" value="28" required class="mt-1 w-full rounded-xl border p-2" />
+              </div>
+              <div>
+                <label for="periodLen" class="block text-sm font-medium">Avg period length</label>
+                <input id="periodLen" type="number" min="1" max="10" value="5" required class="mt-1 w-full rounded-xl border p-2" />
+              </div>
+            </div>
+            <div>
+              <label for="notes" class="block text-sm font-medium">Notes (optional)</label>
+              <input id="notes" type="text" placeholder="e.g., cramps, light flow" class="mt-1 w-full rounded-xl border p-2" />
+            </div>
+            <button class="w-full py-2 rounded-xl bg-brand-600 text-white hover:bg-brand-700">
+              Save Entry
+            </button>
+          </form>
+        </div>
+
+        <!-- Predictions Card -->
+        <div class="rounded-2xl border p-5 bg-white shadow-soft" id="predictions" aria-live="polite">
+          <h2 class="text-lg font-semibold mb-2">Predictions</h2>
+          <div id="predSummary" class="text-sm text-slate-700"></div>
+          <div class="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="rounded-xl border p-3">
+              <h3 class="font-medium mb-2">This Month</h3>
+              <div id="calThis" class="text-xs"></div>
+            </div>
+            <div class="rounded-xl border p-3">
+              <h3 class="font-medium mb-2">Next Month</h3>
+              <div id="calNext" class="text-xs"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Symptoms + History -->
+      <section class="grid md:grid-cols-2 gap-6">
+        <!-- Symptoms -->
+        <div class="rounded-2xl border p-5 bg-white shadow-soft">
+          <h2 class="text-lg font-semibold mb-3">Quick Symptoms</h2>
+          <div class="flex flex-wrap gap-2 mb-3">
+            <button class="sym-btn px-3 py-1.5 rounded-full border" data-tag="Cramps">Cramps</button>
+            <button class="sym-btn px-3 py-1.5 rounded-full border" data-tag="Headache">Headache</button>
+            <button class="sym-btn px-3 py-1.5 rounded-full border" data-tag="Back pain">Back pain</button>
+            <button class="sym-btn px-3 py-1.5 rounded-full border" data-tag="Mood change">Mood change</button>
+            <button class="sym-btn px-3 py-1.5 rounded-full border" data-tag="Low energy">Low energy</button>
+            <button class="sym-btn px-3 py-1.5 rounded-full border" data-tag="Bloating">Bloating</button>
+          </div>
+          <form id="symForm" class="flex gap-2">
+            <input id="symDate" type="date" class="rounded-xl border p-2 flex-1" />
+            <input id="symText" type="text" placeholder="Add custom symptom" class="rounded-xl border p-2 flex-1" />
+            <button class="px-4 rounded-xl bg-slate-800 text-white">Add</button>
+          </form>
+          <ul id="symList" class="mt-4 space-y-2 text-sm"></ul>
+        </div>
+
+        <!-- History -->
+        <div class="rounded-2xl border p-5 bg-white shadow-soft">
+          <h2 class="text-lg font-semibold mb-3">History</h2>
+          <ul id="history" class="space-y-2 text-sm"></ul>
+        </div>
+      </section>
+
+      <footer class="py-8 text-center text-xs text-slate-500">
+        <p>Built with ❤️ using JavaScript + TailwindCSS. Data stays on your device.</p>
+      </footer>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
